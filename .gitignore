@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 k_fold_data/
-challenge_data/*
+challenge_data/*.csv
 # Distribution / packaging
 .Python
 build/
