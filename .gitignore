@@ -2,10 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.history/
 # C extensions
 *.so
-
+k_fold_data/
+challenge_data/*
 # Distribution / packaging
 .Python
 build/
