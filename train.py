@@ -51,7 +51,7 @@ if __name__ == "__main__":
             prefetch_factor=cfg.TRAIN.PREFETCH_FACTOR,
         )
 
-        model = CNNModel()
+        model = BasicModel()
         classifier = Classifier(model, cfg.OPT.LEARNING_RATE, cfg.OPT.FACTOR_LR, cfg.OPT.PATIENCE_LR)
 
         # Initialize a ModelCheckpoint callback to save the model weights after each epoch
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         )
 
         # Initialize a LearningRateMonitor callback to log the learning rate during training
-        lr_monitor = LearningRateMonitor(logging_interval="step")
+        lr_monitor = LearningRateMonitor(logging_interval="epoch")
         # Initialize a EarlyStopping callback to stop training if the validation loss does not improve for a certain number of epochs
         early_stopping = EarlyStopping(
             monitor="val_loss",
@@ -119,8 +119,6 @@ if __name__ == "__main__":
             classifier = Classifier.load_from_checkpoint(
                 checkpoint_path=checkpoint,
                 model=model,
-                class_weight=cfg.DATA.CLASS_WEIGHT,
-                num_classes=cfg.DATA.NUM_CLASS,
                 learning_rate=cfg.OPT.LEARNING_RATE,
                 factor_lr=cfg.OPT.FACTOR_LR,
                 patience_lr=cfg.OPT.PATIENCE_LR,
