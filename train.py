@@ -51,7 +51,7 @@ if __name__ == "__main__":
             prefetch_factor=cfg.TRAIN.PREFETCH_FACTOR,
         )
 
-        model = BasicModel()
+        model = CNNModel()
         classifier = Classifier(model, cfg.OPT.LEARNING_RATE, cfg.OPT.FACTOR_LR, cfg.OPT.PATIENCE_LR)
 
         # Initialize a ModelCheckpoint callback to save the model weights after each epoch
