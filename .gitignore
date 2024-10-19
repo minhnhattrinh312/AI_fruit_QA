@@ -7,6 +7,8 @@ __pycache__/
 *.so
 k_fold_data/
 challenge_data/*.csv
+wandb/
+weights*/
 # Distribution / packaging
 .Python
 build/

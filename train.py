@@ -11,7 +11,8 @@ from classification import *
 from lightning.pytorch.loggers import WandbLogger
 import os
 import wandb
-
+import torch._dynamo
+torch._dynamo.config.suppress_errors = True
 
 torch.set_float32_matmul_precision("high")
 
@@ -22,33 +23,26 @@ if __name__ == "__main__":
     for fold in cfg.TRAIN.FOLDS:
         print("train on fold", fold)
 
-        save_dir = f"{cfg.DIRS.SAVE_DIR}/fold_{fold}/"
+        save_dir = f"{cfg.DIRS.SAVE_DIR}/{cfg.TRAIN.TASK}_fold_{fold}/"
         os.makedirs(save_dir, exist_ok=True)
-        df_data = pd.read_csv(f"./dataset/data_images_fold{fold}.csv")
+        x_train = pd.read_csv(f"k_fold_data/x_train_fold{fold}.csv")
+        y_train = pd.read_csv(f"k_fold_data/y_{cfg.TRAIN.TASK}_train_fold{fold}.csv")
+        x_test = pd.read_csv(f"k_fold_data/x_test_fold{fold}.csv")
+        y_test = pd.read_csv(f"k_fold_data/y_{cfg.TRAIN.TASK}_test_fold{fold}.csv")
         # get dataframe train and test
-        df_train = df_data[df_data["fold"] != fold].reset_index(drop=True)
-        df_test = df_data[df_data["fold"] == fold].reset_index(drop=True)
-        # duplicate df_Train to df_train_aug that all columns have target==1 will be duplicated 10 times
-        # df_train_aug = df_train[df_train["target"] == 1].copy()
-        # df_train_aug = pd.concat([df_train_aug] * 8, ignore_index=True)
-        # df_train = pd.concat([df_train, df_train_aug], ignore_index=True)
-        # Initialize ISIC_Loader objects for the training and test data
-        train_loader = ISIC_Loader(df_train, mode="train")
 
-        test_loader = ISIC_Loader(df_test)
+        train_loader = SpectralDataset(x_train, y_train)
+        test_loader = SpectralDataset(x_test, y_test)
         # Define data loaders for the training and test data
-        sampler = DualSampler(
-            train_loader, batch_size=cfg.TRAIN.BATCH_SIZE, num_pos=3, sampling_rate=None, shuffle=True
-        )
+
         train_dataset = DataLoader(
             train_loader,
             batch_size=cfg.TRAIN.BATCH_SIZE,
             pin_memory=True,
-            # shuffle=True,
+            shuffle=True,
             num_workers=cfg.TRAIN.NUM_WORKERS,
             drop_last=True,
             prefetch_factor=cfg.TRAIN.PREFETCH_FACTOR,
-            sampler=sampler,
         )
         test_dataset = DataLoader(
             test_loader,
@@ -57,54 +51,28 @@ if __name__ == "__main__":
             prefetch_factor=cfg.TRAIN.PREFETCH_FACTOR,
         )
 
-        if cfg.TRAIN.PRETRAIN:
-            print("use pretrain")
-        model = convnext_tiny(
-            pretrained=cfg.TRAIN.PRETRAIN,
-            in_22k=cfg.TRAIN.CONVEXT.IN22K,
-            in_chans=cfg.DATA.IN_CHANNEL,
-            num_classes=cfg.DATA.NUM_CLASS,
-            drop_path_rate=cfg.TRAIN.CONVEXT.DROPOUT,
-        )
-        classifier = Classifier(
-            model,
-            cfg.DATA.CLASS_WEIGHT,
-            cfg.DATA.NUM_CLASS,
-            cfg.OPT.LEARNING_RATE,
-            cfg.OPT.FACTOR_LR,
-            cfg.OPT.PATIENCE_LR,
-        )
+        model = BasicModel()
+        classifier = Classifier(model, cfg.OPT.LEARNING_RATE, cfg.OPT.FACTOR_LR, cfg.OPT.PATIENCE_LR)
 
         # Initialize a ModelCheckpoint callback to save the model weights after each epoch
-        check_point_auc = ModelCheckpoint(
+        check_point_mse = ModelCheckpoint(
             save_dir,
-            filename="ckpt_auc_{val_partial_auc:0.4f}",
-            monitor="val_partial_auc",
-            mode="max",
+            filename="{val_loss:0.4f}",
+            monitor="val_loss",
+            mode="min",
             save_top_k=cfg.TRAIN.SAVE_TOP_K,
             verbose=True,
             save_weights_only=True,
             auto_insert_metric_name=False,
-            save_last=True,
-        )
-        check_point_recall = ModelCheckpoint(
-            save_dir,
-            filename="ckpt_recall_{recall_val:0.4f}",
-            monitor="recall_val",
-            mode="max",
-            save_top_k=cfg.TRAIN.SAVE_TOP_K,
-            verbose=True,
-            save_weights_only=True,
-            auto_insert_metric_name=False,
-            save_last=True,
+            save_last=False,
         )
 
         # Initialize a LearningRateMonitor callback to log the learning rate during training
         lr_monitor = LearningRateMonitor(logging_interval="step")
         # Initialize a EarlyStopping callback to stop training if the validation loss does not improve for a certain number of epochs
         early_stopping = EarlyStopping(
-            monitor="val_partial_auc",
-            mode="max",
+            monitor="val_loss",
+            mode="min",
             patience=cfg.OPT.PATIENCE_ES,
             verbose=True,
             strict=False,
@@ -112,15 +80,15 @@ if __name__ == "__main__":
         # If wandb_logger is True, create a WandbLogger object
         if cfg.TRAIN.WANDB:
             wandb_logger = WandbLogger(
-                project="ISIC2024",
-                name=f"{cfg.TRAIN.MODEL}_fold_{fold}",
-                group=f"{cfg.TRAIN.MODEL}",
+                project="AI_fruit_QA",
+                name=f"{cfg.TRAIN.TASK}_fold_{fold}",
+                group=f"{cfg.TRAIN.TASK}",
                 resume="allow",
             )
-            callbacks = [check_point_auc, check_point_recall, early_stopping, lr_monitor]
+            callbacks = [check_point_mse, early_stopping, lr_monitor]
         else:
             wandb_logger = False
-            callbacks = [check_point_auc, check_point_recall, early_stopping]
+            callbacks = [check_point_mse, early_stopping]
 
         # Define a dictionary with the parameters for the Trainer object
         PARAMS_TRAINER = {

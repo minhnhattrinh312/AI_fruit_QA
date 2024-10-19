@@ -2,12 +2,12 @@ import numpy as np
 import torch
 import lightning
 import timm.optim
-from classification.loss_function import *
+from torch.nn import MSELoss
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 class Classifier(lightning.LightningModule):
 
-    def __init__(self, model, class_weight, learning_rate, factor_lr, patience_lr, num_classes=1):
+    def __init__(self, model, learning_rate, factor_lr, patience_lr):
         super().__init__()
         self.model = model
         self.learning_rate = learning_rate
@@ -15,8 +15,6 @@ class Classifier(lightning.LightningModule):
         # torch 2.3 => compile to make faster
         self.model = torch.compile(self.model, mode="reduce-overhead")
 
-        self.class_weight = class_weight
-        self.num_classes = num_classes
         self.learning_rate = learning_rate
         self.factor_lr = factor_lr
         self.patience_lr = patience_lr
@@ -28,7 +26,7 @@ class Classifier(lightning.LightningModule):
     def training_step(self, batch, batch_idx):
         data, label = batch
         pred = self.model(data)
-        loss_mse = MSE_Loss()(pred, label)
+        loss_mse = MSELoss()(pred, label)
         metrics = {'train_loss': loss_mse}
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return loss_mse
@@ -44,7 +42,7 @@ class Classifier(lightning.LightningModule):
     def on_validation_epoch_end(self):
         y_true = torch.cat([x["batch_y_true"] for x in self.validation_step_outputs], dim=0)
         prediction = torch.cat([x["batch_y_pred"] for x in self.validation_step_outputs], dim=0)
-        loss_mse = MSE_Loss()(prediction, y_true)
+        loss_mse = MSELoss()(prediction, y_true)
         metrics = {'val_loss': loss_mse}
         self.log_dict(metrics, prog_bar=True)
         return metrics
@@ -56,6 +54,7 @@ class Classifier(lightning.LightningModule):
             "scheduler": scheduler,
             "monitor": "val_loss",
             "strict": False,
+            
         }
 
         return [optimizer], lr_schedulers
