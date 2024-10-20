@@ -1,0 +1,20 @@
+pytorch-lightning==2.4.0
+pytorch-msssim==1.0.0
+PyYAML @ file:///croot/pyyaml_1698096049011/work
+scikit-image @ file:///home/conda/feedstock_root/build_artifacts/scikit-image_1719499419500/work/dist/scikit_image-0.24.0-cp310-cp310-linux_x86_64.whl#sha256=12324540bb31b9ec671d4da817cf26a95fc5a09223a3533ae91935554fe1aefe
+scikit-learn==1.5.2
+scipy @ file:///home/conda/feedstock_root/build_artifacts/scipy-split_1719280597764/work/dist/scipy-1.14.0-cp310-cp310-linux_x86_64.whl#sha256=6043db2c45e1df85d682468c216c08ef9da7cebd1712b766d245aa19cfc956ed
+seaborn==0.13.2
+timm
+torch==2.4.0
+torchaudio==2.4.1
+torchmetrics==1.4.0.post0
+torchrbf==0.0.1
+torchvision==0.19.0
+torchviz==0.0.2
+tornado @ file:///home/conda/feedstock_root/build_artifacts/tornado_1717722796999/work
+tqdm @ file:///home/conda/feedstock_root/build_artifacts/tqdm_1714854870413/work
+wandb==0.17.6
+yacs==0.1.8
+yarl==1.9.4
+

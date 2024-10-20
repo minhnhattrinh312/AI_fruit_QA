@@ -30,8 +30,9 @@ class Get_samples(Dataset):
 # make task argument
 parser = argparse.ArgumentParser()
 parser.add_argument("--task", type=str, default="brix", help="task to predict (brix or firm)")
-
-task = parser.parse_args().task
+parser.add_argument("-bs", "--batch_size", type=int, default=64, help="batch size")
+args = parser.parse_args()
+task = args.task
 weight_brix = sorted(glob.glob(f"weights_{task}/*/*"))
 
 
@@ -39,14 +40,14 @@ model = BasicModel()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 classifier = Classifier(model, cfg.OPT.LEARNING_RATE, cfg.OPT.FACTOR_LR, cfg.OPT.PATIENCE_LR)
-x_test_df = pd.read_csv("challenge_data/x_2d_snv_test.csv", index_col=0)
+x_test_df = pd.read_csv("challenge_data/x_2d_snv_test_new.csv", index_col=0)
 x_test = np.array(x_test_df)
 x_test = normalize_01(x_test)
 
 test_dataset = Get_samples(x_test)
 test_loader = DataLoader(
     test_dataset,
-    batch_size=cfg.TRAIN.BATCH_SIZE,
+    batch_size=args.batch_size,
     num_workers=cfg.TRAIN.NUM_WORKERS,
     prefetch_factor=cfg.TRAIN.PREFETCH_FACTOR,
 )
