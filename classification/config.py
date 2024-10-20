@@ -10,7 +10,7 @@ cfg.DIRS = CN()
 cfg.PREDICT = CN()
 
 
-cfg.TRAIN.TASK = "brix"  # "brix" or "firm"
+cfg.TRAIN.TASK = "firm"  # "brix" or "firm"
 # cfg.TRAIN.FOLDS = [1, 2, 3, 4, 5]  # default [1, 2, 3, 4, 5]
 cfg.TRAIN.FOLDS = [5]  # default [1, 2, 3, 4, 5]
 cfg.TRAIN.BATCH_SIZE = 64
@@ -33,5 +33,3 @@ cfg.SYS.ACCELERATOR = "gpu"
 cfg.SYS.DEVICES = [0]
 cfg.SYS.MIX_PRECISION = "32"  # "16-mixed"  # 32 or 16-mixed
 
-cfg.PREDICT.FOLD = 1
-cfg.PREDICT.ENSEMBLE = True
