@@ -10,9 +10,9 @@ cfg.DIRS = CN()
 cfg.PREDICT = CN()
 
 
-cfg.TRAIN.TASK = "firm"  # "brix" or "firm"
-cfg.TRAIN.FOLDS = [1, 2, 3, 4, 5]  # default [1, 2, 3, 4, 5]
-# cfg.TRAIN.FOLDS = [1]  # default [1, 2, 3, 4, 5]
+cfg.TRAIN.TASK = "brix"  # "brix" or "firm"
+# cfg.TRAIN.FOLDS = [1, 2, 3, 4, 5]  # default [1, 2, 3, 4, 5]
+cfg.TRAIN.FOLDS = [5]  # default [1, 2, 3, 4, 5]
 cfg.TRAIN.BATCH_SIZE = 64
 cfg.TRAIN.NUM_WORKERS = 16
 cfg.TRAIN.PREFETCH_FACTOR = 2
@@ -24,10 +24,10 @@ cfg.TRAIN.SAVE_TOP_K = 1
 
 cfg.DIRS.SAVE_DIR = f"./weights_{cfg.TRAIN.TASK}/"
 
-cfg.OPT.LEARNING_RATE = 2e-3
+cfg.OPT.LEARNING_RATE = 1e-3
 cfg.OPT.FACTOR_LR = 0.5
-cfg.OPT.PATIENCE_LR = 100
-cfg.OPT.PATIENCE_ES = 550
+cfg.OPT.PATIENCE_LR = 200
+cfg.OPT.PATIENCE_ES = 1100
 
 cfg.SYS.ACCELERATOR = "gpu"
 cfg.SYS.DEVICES = [0]

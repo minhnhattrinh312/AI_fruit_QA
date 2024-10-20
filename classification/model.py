@@ -32,6 +32,12 @@ class BasicModel(nn.Module):
         self.gelu6 = nn.GELU()
         self.dropout3 = nn.Dropout(p=0.2)
         self.dense3 = nn.Linear(in_features=64, out_features=1)
+        # init weights he normal
+        for m in self.modules():
+            if isinstance(m, nn.Conv1d):
+                nn.init.kaiming_normal_(m.weight)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight)
 
     def forward(self, x):
         x = self.conv1(x)
